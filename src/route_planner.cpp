@@ -57,10 +57,11 @@ std::vector<RouteModel::Node> RoutePlanner::ConstructFinalPath(RouteModel::Node 
     distance = 0.0f; // Is this necessary? Isn't the g_value what we need?
     std::vector<RouteModel::Node> path_found;
 
-    while (current_node != nullptr)
+    while (current_node)
     {
         path_found.push_back(*current_node);
-        if (current_node->parent != nullptr)
+        if (current_node == start_node) { break; }
+        if (current_node->parent)
         {
             distance += current_node->distance(*current_node->parent);
         }
@@ -77,6 +78,7 @@ void RoutePlanner::AStarSearch()
     RouteModel::Node *current_node = nullptr;
 
     open_list.push_back(start_node);
+    start_node->visited = true;
     while (open_list.size() > 0)
     {
         current_node = NextNode();
