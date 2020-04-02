@@ -1,5 +1,4 @@
 #include "route_planner.h"
-#include "route_model.h"
 #include <algorithm>
 
 RoutePlanner::RoutePlanner(RouteModel &model, float start_x, float start_y, float end_x, float end_y) : m_Model(model)
@@ -13,6 +12,7 @@ RoutePlanner::RoutePlanner(RouteModel &model, float start_x, float start_y, floa
     // Find the closest nodes to the given targets
     start_node = &m_Model.FindClosestNode(start_x, start_y);
     end_node = &m_Model.FindClosestNode(end_x, end_y);
+    // TODO: Error handling if there are no nodes?
 }
 
 float RoutePlanner::CalculateHValue(RouteModel::Node const *node)
@@ -20,15 +20,22 @@ float RoutePlanner::CalculateHValue(RouteModel::Node const *node)
     return node->distance(*end_node);
 }
 
-// TODO 4: Complete the AddNeighbors method to expand the current node by adding all unvisited neighbors to the open list.
-// Tips:
-// - Use the FindNeighbors() method of the current_node to populate current_node.neighbors vector with all the neighbors.
-// - For each node in current_node.neighbors, set the parent, the h_value, the g_value.
-// - Use CalculateHValue below to implement the h-Value calculation.
-// - For each node in current_node.neighbors, add the neighbor to open_list and set the node's visited attribute to true.
-
 void RoutePlanner::AddNeighbors(RouteModel::Node *current_node)
 {
+    current_node->FindNeighbors();
+    for (RouteModel::Node *node : current_node->neighbors)
+    {
+        if (!node->visited)
+        {
+            node->parent = current_node;
+            // TODO: How to pass node pointer as const?
+            node->h_value = CalculateHValue(node);
+            node->g_value = current_node->g_value + node->distance(*current_node);
+            // TODO: Why does this complain? Adding a Node* to a vector of Node*
+            open_list.push_back(node);
+            node->visited = true;
+        }
+    }
 }
 
 // TODO 5: Complete the NextNode method to sort the open list and return the next node.
